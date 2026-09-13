@@ -37,8 +37,50 @@ class MockOfflineProvider(BaseLLMProvider):
     def generate_with_tools(self, prompt: str, tools_schema: List[Dict[str, Any]], system_prompt: str = "") -> Dict[str, Any]:
         prompt_lower = prompt.lower()
         
-        # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
+        # Nếu đã có kết quả observation từ Tool trước đó trong vòng lặp ReAct, tổng hợp câu trả lời cuối cùng
+        if "[observation từ mcp server]:" in prompt_lower:
+            # Xử lý trường hợp TC04: Multi-step Reasoning
+            if "tc04" in prompt_lower or ("vn2026002" in prompt_lower and "cập nhật trạng thái sang 'đang giao hàng'" in prompt_lower):
+                if "update_order_status" not in prompt_lower:
+                    return {
+                        "type": "tool_call",
+                        "tool_name": "update_order_status",
+                        "arguments": {
+                            "tracking_code": "VN2026002",
+                            "new_status": "Đang giao hàng",
+                            "warehouse_location": "Đang vận chuyển đến Trung tâm R&D VinAI",
+                            "note": "Bàn giao cho đội ngũ nghiên cứu VinAI"
+                        },
+                        "thought": "Quan sát thấy kiện hàng VN2026002 đang trong trạng thái vận chuyển. Theo yêu cầu, tôi tiếp tục gọi 'update_order_status' để chuyển trạng thái sang 'Đang giao hàng'."
+                    }
+            return {
+                "type": "text",
+                "content": f"[Mock Agent Response]: Dựa vào thông tin trả về từ hệ thống kho vận MCP Server, tác vụ đã được xử lý thành công và chính xác.",
+                "thought": "Đã nhận được dữ liệu từ MCP Server, tổng hợp kết quả phản hồi cuối cùng cho người dùng."
+            }
+
+        # Mô phỏng nhận diện intent gọi Tool cho Supply Chain Agent
+        if "cập nhật" in prompt_lower and "vn2026001" in prompt_lower:
+            return {
+                "type": "tool_call",
+                "tool_name": "update_order_status",
+                "arguments": {
+                    "tracking_code": "VN2026001",
+                    "new_status": "Đang vận chuyển",
+                    "warehouse_location": "Xe tải trung chuyển 29C-12345",
+                    "note": "Đã xuất kho và đang trên đường bàn giao"
+                },
+                "thought": "Người dùng yêu cầu cập nhật trạng thái vận đơn VN2026001. Tôi sẽ gọi tool update_order_status."
+            }
+        elif "vn2026001" in prompt_lower or "vn2026002" in prompt_lower or "vn9999999" in prompt_lower:
+            code = "VN9999999" if "vn9999999" in prompt_lower else ("VN2026002" if "vn2026002" in prompt_lower else "VN2026001")
+            return {
+                "type": "tool_call",
+                "tool_name": "track_shipment",
+                "arguments": {"tracking_code": code},
+                "thought": f"Người dùng muốn tra cứu thông tin vận đơn {code}. Tôi sẽ gọi tool track_shipment."
+            }
+        elif "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
             return {
                 "type": "tool_call",
                 "tool_name": "schedule_appointment",
@@ -48,15 +90,15 @@ class MockOfflineProvider(BaseLLMProvider):
         elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
             return {
                 "type": "tool_call",
-                "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "tool_name": "track_shipment" if any(t.get("name") == "track_shipment" for t in tools_schema) else "academic_query",
+                "arguments": {"tracking_code": "VN2026001"} if any(t.get("name") == "track_shipment" for t in tools_schema) else {"student_id": "SV2026001"},
+                "thought": "Yêu cầu tra cứu dữ liệu thời gian thực từ MCP Server."
             }
         else:
             return {
                 "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "content": "[Mock Agent Response]: Quy trình kiểm soát chất lượng và tiếp nhận hàng hóa tại kho bao gồm 4 bước: 1. Kiểm tra đối chiếu mã vận đơn & niêm phong chì seal; 2. Kiểm tra ngoại quan bao bì và tem nhãn hàng nguy hiểm (Pin Lithium); 3. Quét mã QR/Barcode nhập hệ thống WMS; 4. Điều chuyển vào phân khu kệ theo tiêu chuẩn an toàn kỹ thuật.",
+                "thought": "Câu hỏi chung về quy trình nghiệp vụ kho vận, trả lời trực tiếp từ System Prompt mà không cần gọi Tool."
             }
 
 

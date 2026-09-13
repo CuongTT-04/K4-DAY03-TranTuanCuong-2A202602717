@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SUPPLYCHAIN AI AGENT — Intelligent Order & Warehouse Assistant</title>
+  
+  <!-- Modern Typography: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome 6 for crisp icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Modern Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- ==========================================================================
+         1. LEFT MINIMALIST SIDEBAR
+         ========================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-wrapper">
+          <div class="brand-logo">
+            <i class="fa-solid fa-boxes-packing"></i>
+          </div>
+          <div class="brand-info">
+            <h2>SupplyChain AI</h2>
+            <span>Warehouse & Logistics Agent</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="new-chat-btn" id="newChatBtn" title="Làm mới phiên hội thoại (Khởi tạo phiên mới)">
+        <span><i class="fa-solid fa-plus" style="margin-right: 6px; font-size: 11px;"></i> Phiên hội thoại mới</span>
+        <span class="kbd">⌘K</span>
+      </button>
+
+      <div class="sidebar-scroll">
+        <div class="nav-section-title">Phiên làm việc</div>
+        <div class="scenario-list" id="recentChatsList">
+          <div class="scenario-item active" id="currentSessionItem">
+            <i class="fa-regular fa-message" style="font-size: 12px; color: var(--accent);"></i>
+            <span class="title" id="sidebarSessionTitle">Đoạn chat hiện tại</span>
+          </div>
+        </div>
+
+        <div class="nav-section-title" style="margin-top: 18px;">Công cụ MCP sẵn sàng</div>
+        <div class="scenario-list">
+          <div class="scenario-item" style="cursor: default;">
+            <i class="fa-solid fa-magnifying-glass-location" style="color: var(--accent); font-size: 12px;"></i>
+            <span class="title">track_shipment</span>
+            <span class="badge" style="background: var(--success-bg); color: var(--success); font-size: 9.5px;">READY</span>
+          </div>
+          <div class="scenario-item" style="cursor: default;">
+            <i class="fa-solid fa-pen-to-square" style="color: var(--purple); font-size: 12px;"></i>
+            <span class="title">update_order_status</span>
+            <span class="badge" style="background: var(--success-bg); color: var(--success); font-size: 9.5px;">READY</span>
+          </div>
+        </div>
+
+        <div class="nav-section-title" style="margin-top: 18px;">Hệ thống & Dữ liệu</div>
+        <div class="scenario-list">
+          <div class="scenario-item" id="navViewMockData" style="cursor: pointer;">
+            <i class="fa-solid fa-database" style="color: var(--success); font-size: 12px;"></i>
+            <span>Kho dữ liệu WMS</span>
+          </div>
+          <div class="scenario-item" id="navViewArchitecture" style="cursor: pointer;">
+            <i class="fa-solid fa-network-wired" style="color: var(--accent); font-size: 12px;"></i>
+            <span>Kiến trúc ReAct & MCP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="author-card">
+          <div class="author-avatar">TC</div>
+          <div class="author-meta">
+            <div class="name">Trần Tuấn Cường</div>
+            <div class="role">MSSV: 2A202602717 • VinAI K4</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         2. MAIN CHAT VIEWPORT (Claude / Linear / Perplexity Style)
+         ========================================================================== -->
+    <main class="main-viewport">
+      
+      <!-- Top Navigation Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <button class="action-icon-btn" id="toggleSidebarBtn" title="Ẩn/Hiện Sidebar">
+            <i class="fa-solid fa-bars-staggered"></i>
+          </button>
+          <div class="app-title-chip">
+            <span style="font-weight: 700; color: var(--text-primary);">SUPPLYCHAIN AI AGENT</span>
+            <span style="color: var(--border-focus); font-size: 11px;">/</span>
+            <span style="color: var(--text-secondary); font-weight: 500; font-size: 13px;" id="currentSessionTitle">Phiên hội thoại mới</span>
+          </div>
+        </div>
+
+        <div class="top-bar-right">
+          <div class="pill-tag" title="MCP Server Trạng thái kết nối">
+            <span class="pulse-dot"></span>
+            <span>vinuni-supply-chain-mcp-server: ACTIVE</span>
+          </div>
+
+          <button class="action-icon-btn" id="toggleInspectorBtn" title="Bật/Tắt Live Inspector & Telemetry">
+            <i class="fa-solid fa-chart-column"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Chat Messages Scroll Stream -->
+      <div class="chat-scroll-container" id="chatScrollContainer">
+        <div class="messages-inner" id="messagesFeed">
+          
+          <!-- Empty State (Hero) -->
+          <div class="hero-state" id="heroState">
+            <div class="hero-icon">
+              <i class="fa-solid fa-robot"></i>
+            </div>
+            <h1>SupplyChain AI Agent</h1>
+            <p>Trợ lý thông minh hỗ trợ điều phối vận đơn, quản lý kho bãi và tự động gọi Tool qua Model Context Protocol (MCP). Nhập bất kỳ câu lệnh nào để xem cách Agent suy luận ReAct và thực thi lệnh.</p>
+            
+            <div class="prompt-suggestions-grid">
+              <div class="suggestion-card" data-hint="Tra cứu thông tin mã vận đơn VN2026001 và vị trí kho hiện tại">
+                <span class="tag"><i class="fa-solid fa-magnifying-glass"></i> Tra cứu đơn hàng</span>
+                <div class="text">"Tra cứu thông tin mã vận đơn VN2026001 và vị trí kho hiện tại"</div>
+              </div>
+              <div class="suggestion-card" data-hint="Cập nhật vận đơn VN2026001 sang 'Đang vận chuyển' lên Xe tải 29C-12345">
+                <span class="tag"><i class="fa-solid fa-truck"></i> Điều chuyển trạng thái</span>
+                <div class="text">"Cập nhật vận đơn VN2026001 sang 'Đang vận chuyển' lên Xe tải 29C-12345"</div>
+              </div>
+              <div class="suggestion-card" data-hint="Kiểm tra mã vận đơn VN2026002, nếu ở Hà Nội thì đổi sang Đang giao hàng cho VinAI">
+                <span class="tag"><i class="fa-solid fa-route"></i> Suy luận ReAct đa bước</span>
+                <div class="text">"Kiểm tra mã VN2026002, nếu ở Hà Nội thì đổi sang Đang giao hàng cho VinAI"</div>
+              </div>
+              <div class="suggestion-card" data-hint="Kiểm tra kiện hàng có mã vận đơn VN9999999">
+                <span class="tag"><i class="fa-solid fa-shield-halved"></i> Kiểm tra mã không tồn tại</span>
+                <div class="text">"Kiểm tra kiện hàng có mã vận đơn VN9999999"</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Chat Message Thread will be inserted here by app.js -->
+        </div>
+      </div>
+
+      <!-- Floating Prompt Input Dock (Claude / ChatGPT style) -->
+      <div class="floating-dock">
+        <div class="input-capsule">
+          <textarea id="promptInput" rows="1" placeholder="Nhập câu hỏi hoặc chọn kịch bản phía trên để xem Agent thực thi ReAct..."></textarea>
+          <div class="capsule-toolbar">
+            <div class="tool-indicator">
+              <i class="fa-solid fa-bolt-lightning"></i>
+              <span>Tools: track_shipment, update_order_status</span>
+            </div>
+            <button class="send-btn" id="sendBtn" title="Gửi yêu cầu">
+              <i class="fa-solid fa-arrow-up"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ==========================================================================
+         3. RIGHT LIVE TELEMETRY & MCP INSPECTOR (Linear / Perplexity style)
+         ========================================================================== -->
+    <aside class="inspector-panel" id="inspectorPanel">
+      <div class="inspector-header">
+        <div class="inspector-title">
+          <i class="fa-solid fa-microchip" style="color: var(--accent);"></i>
+          <span>Live Telemetry & MCP</span>
+        </div>
+        <span class="kbd" style="font-size: 10.5px; padding: 2px 6px;">MCP 2.0</span>
+      </div>
+
+      <div class="inspector-body">
+        
+        <!-- Metrics Widget -->
+        <div class="inspector-card">
+          <div class="card-title-sm">
+            <span>Hiệu năng ReAct Loop</span>
+            <i class="fa-solid fa-gauge-high"></i>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <div class="num" id="statLatency">1.24s</div>
+              <div class="desc">Tổng độ trễ</div>
+            </div>
+            <div class="stat-box">
+              <div class="num" id="statSteps">2 Steps</div>
+              <div class="desc">Số vòng lặp ReAct</div>
+            </div>
+            <div class="stat-box">
+              <div class="num" id="statToolCalls">1 Call</div>
+              <div class="desc">Lệnh gọi MCP Tool</div>
+            </div>
+            <div class="stat-box">
+              <div class="num" id="statTokens">486</div>
+              <div class="desc">Tổng Token</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MCP Tool Call JSON-RPC Payload -->
+        <div class="inspector-card">
+          <div class="card-title-sm">
+            <span>MCP JSON-RPC Payload</span>
+            <span class="badge" style="font-size: 10px; font-family: var(--font-mono); background: #e2e8f0; padding: 2px 5px; border-radius: 4px;" id="mcpToolNameBadge">track_shipment</span>
+          </div>
+          <pre class="json-dump" id="mcpPayloadDump">{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "track_shipment",
+    "arguments": {
+      "tracking_code": "VN2026001"
+    }
+  },
+  "id": 1
+}</pre>
+        </div>
+
+        <!-- Registered Tools in MCP Server -->
+        <div class="inspector-card">
+          <div class="card-title-sm">
+            <span>Registered MCP Tools</span>
+            <span style="font-size: 11px; color: var(--success); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> 2 Ready</span>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+            <div style="background: #ffffff; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-base);">
+              <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent);">track_shipment</div>
+              <div style="color: var(--text-tertiary); font-size: 11px;">Tra cứu trạng thái, vị trí kho và thông tin kiện hàng.</div>
+            </div>
+            <div style="background: #ffffff; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-base);">
+              <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent);">update_order_status</div>
+              <div style="color: var(--text-tertiary); font-size: 11px;">Cập nhật trạng thái điều phối, vị trí và ghi chú kho vận.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Architecture Highlights -->
+        <div class="inspector-card">
+          <div class="card-title-sm">
+            <span>Tiêu chí Đánh giá Đồ án</span>
+          </div>
+          <ul style="padding-left: 16px; font-size: 11.5px; color: var(--text-secondary); line-height: 1.6;">
+            <li><strong>ReAct Native:</strong> Thought ➔ Action ➔ Observation ➔ Answer.</li>
+            <li><strong>MCP Protocol:</strong> JSON-RPC 2.0 chuẩn giao thức mở.</li>
+            <li><strong>Anti-Hallucination:</strong> Không bịa đặt vị trí khi mã đơn không tồn tại.</li>
+            <li><strong>Multi-step:</strong> Tự động chuỗi lệnh tra cứu trước, cập nhật sau.</li>
+          </ul>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Client Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

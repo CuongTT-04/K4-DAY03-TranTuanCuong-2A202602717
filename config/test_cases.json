@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Chào bạn, quy trình kiểm soát chất lượng và tiêu chuẩn phân loại hàng hóa khi nhập vào kho lưu trữ được thực hiện như thế nào?",
+    "expected_behavior": "Agent trả lời trực tiếp từ kiến thức chung về quy trình vận hành kho vận, không phát sinh bất kỳ Tool Call nào.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy tra cứu thông tin mã vận đơn VN2026001 và cho tôi biết hiện tại kiện hàng đang được lưu trữ ở vị trí kho nào?",
+    "expected_behavior": "Agent nhận diện nhu cầu tra cứu đơn hàng, tự động phát sinh Tool Call 'track_shipment' với tham số tracking_code là 'VN2026001'.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "status_update",
+    "question": "Vui lòng cập nhật trạng thái vận đơn VN2026001 sang 'Đang vận chuyển', chuyển vị trí sang 'Xe tải trung chuyển 29C-12345' với ghi chú 'Đã xuất kho và đang trên đường bàn giao'.",
+    "expected_behavior": "Agent nhận diện yêu cầu điều phối, tự động phát sinh Tool Call 'update_order_status' với đầy đủ mã đơn, trạng thái mới và vị trí điều chuyển.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Hãy kiểm tra tình trạng hiện tại của vận đơn VN2026002. Nếu kiện hàng đang vận chuyển đến Hà Nội, hãy tiếp tục cập nhật trạng thái sang 'Đang giao hàng' để chuẩn bị bàn giao cho Trung tâm R&D VinAI.",
+    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct đa bước: Tra cứu trạng thái đơn qua 'track_shipment' trước, sau đó dựa vào kết quả Observation để ra quyết định gọi 'update_order_status' cập nhật trạng thái.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Kiểm tra giúp tôi vị trí lưu kho và tiến độ vận chuyển của kiện hàng có mã vận đơn VN9999999.",
+    "expected_behavior": "Agent gọi 'track_shipment' với mã 'VN9999999', nhận kết quả NOT_FOUND từ Tool và đưa ra phản hồi rõ ràng, lịch sự rằng mã đơn không tồn tại, không bịa đặt dữ liệu (Anti-Hallucination).",
+    "complexity": "Medium"
+  }
+]

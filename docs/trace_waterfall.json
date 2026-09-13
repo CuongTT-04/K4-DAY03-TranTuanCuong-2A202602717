@@ -1,29 +1,25 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
-    "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
-  },
-  {
-    "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Kiểm tra giúp tôi vị trí lưu kho và tiến độ vận chuyển của kiện hàng có mã vận đơn VN9999999",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "track_shipment",
     "arguments": {
-      "student_id": "SV2026001"
+      "tracking_code": "VN9999999"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "NOT_FOUND",
+      "tracking_code": "VN9999999",
+      "message": "Không tìm thấy dữ liệu vận đơn hoặc đơn hàng có mã 'VN9999999' trong hệ thống kho vận."
+    },
+    "latency_ms": 2087.12
   },
   {
     "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Kiểm tra giúp tôi vị trí lưu kho và tiến độ vận chuyển của kiện hàng có mã vận đơn VN9999999",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
-    "latency_ms": 10.0
+    "thought": "Đã nhận được dữ liệu từ MCP Server, tổng hợp kết quả phản hồi cuối cùng cho người dùng.",
+    "output": "[Mock Agent Response]: Dựa vào thông tin trả về từ hệ thống kho vận MCP Server, tác vụ đã được xử lý thành công và chính xác.",
+    "latency_ms": 871.12
   }
 ]
